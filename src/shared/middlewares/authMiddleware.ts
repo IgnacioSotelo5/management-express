@@ -7,18 +7,24 @@ export const authMiddleware = async (req: Request, res: Response, next: NextFunc
 
     if(!token){
        res.status(401).json({ error: "Unauthorized" });
+       return
     }
 
     try{
         if(token){
             const verifiedToken = await verifyJWTToken(token)
+            if(!verifiedToken){
+                res.status(401).json({error: "Invalid token"})
+                return
+            }
+            
             const payload = verifiedToken?.payload
             req.user = payload
+            next()
         }
     } catch (error) {
         res.status(401).json({ error: "Unauthorized" });
+        return
     }
-    
-    next()
 
 }
