@@ -1,0 +1,187 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+
+}
+
+enum OrderStatus{
+  PENDING
+  CONFIRMED
+  DELIVERED
+  CANCELLED
+}
+
+model User {
+  id          String    @id @default(auto()) @map("_id") @db.ObjectId
+  name        String
+  lastName    String
+  email       String    @unique
+  password    String
+  role        String
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  ingredients Ingredient[]
+  recipes     Recipe[]
+  supplies    Supply[]
+  equipments  Equipment[]
+  categories  Category[]
+  orders      Order[]
+  suppliers   Supplier[]
+
+  @@index([name], name: "name_index")
+  @@index([createdAt], name: "index_user_createdAt")
+}
+
+
+model Recipe {
+  id          String    @id @default(auto()) @map("_id") @db.ObjectId
+  name        String
+  description String
+  ingredientsIDs String[] @db.ObjectId
+  ingredients Ingredient[] @relation(fields: [ingredientsIDs], references: [id])
+  steps       String[]
+  category    String
+  image       String
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+  userId      String    @db.ObjectId
+  user        User      @relation(fields: [userId], references: [id])
+
+  OrderItem OrderItem[]
+
+  @@index([name], name: "name_index")
+  @@index([ingredientsIDs], name: "index_recipe_ingredientsIDs")
+}
+
+// Modelo para Ingredientes
+model Ingredient {
+  id             String          @id @default(auto()) @map("_id") @db.ObjectId
+  name           String
+  pricePerUnit   Float
+  unit           String
+  totalUnit      Int?
+  categoryId     String          @db.ObjectId
+  category       Category @relation(fields: [categoryId], references: [id])
+  supplierId     String          @db.ObjectId
+  supplier       Supplier? @relation(fields: [supplierId], references: [id])
+  expirationDate DateTime?
+  stockQuantity  Int?
+  reorderLevel   Int?
+  quantityUsed   Int?
+  deletedAt      DateTime?
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  recipeIDs      String[]        @db.ObjectId
+  recipes        Recipe[] @relation(fields: [recipeIDs], references: [id])
+  userId         String          @db.ObjectId
+  user           User @relation(fields: [userId], references: [id])
+
+  @@index([name], name: "name_index")
+  @@index([categoryId], name: "index_ingredient_categoryId")
+  @@index([recipeIDs], name: "index_ingredient_recipeIDs")
+}
+
+// Modelo para Suministros
+model Supply {
+  id             String          @id @default(auto()) @map("_id") @db.ObjectId
+  name           String
+  pricePerUnit   Float
+  unit           String
+  totalUnit      Int?
+  categoryId     String          @db.ObjectId
+  category       Category @relation(fields: [categoryId], references: [id])
+  supplierId     String? @db.ObjectId
+  supplier       Supplier? @relation(fields: [supplierId], references: [id])
+  expirationDate DateTime?
+  deletedAt      DateTime?
+  stockQuantity  Int?
+  reorderLevel   Int?
+  userId         String          @db.ObjectId
+  user           User @relation(fields: [userId], references: [id])
+}
+
+// Modelo para Equipamiento
+model Equipment {
+  id             String          @id @default(auto()) @map("_id") @db.ObjectId
+  name           String
+  pricePerUnit   Float
+  unit           String
+  totalUnit      Int?
+  categoryId     String          @db.ObjectId
+  category       Category @relation(fields: [categoryId], references: [id])
+  supplierId     String?          @db.ObjectId
+  supplier       Supplier? @relation(fields: [supplierId], references: [id])
+  expirationDate DateTime?
+  deletedAt      DateTime?
+  stockQuantity  Int?
+  reorderLevel   Int?
+  userId         String          @db.ObjectId
+  user           User @relation(fields: [userId], references: [id])
+}
+
+model Category{
+  id          String    @id @default(auto()) @map("_id") @db.ObjectId
+  name        String    @unique
+  description String?
+  type        String    //Values 'ingredients' | 'supply' | 'equipment'
+  //relacion con usuario opcional
+  userId      String?   @db.ObjectId //si es null es una categoria global
+  user        User?     @relation(fields: [userId], references: [id])
+  
+  ingredients Ingredient[]
+  supplies    Supply[]
+  equipments  Equipment[]
+
+  @@unique([name, userId], name: "unique_category_per_user")
+}
+
+model Order {
+  id          String    @id @default(auto()) @map("_id") @db.ObjectId
+  items       OrderItem[]
+  owner       String
+  orderNumber String
+  orderDate   DateTime @default(now())
+  deliveryDate DateTime
+  status      OrderStatus @default(PENDING)
+  total       Float
+  deletedAt   DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  //relacion con usuario
+  userId      String    @db.ObjectId
+  user        User @relation(fields: [userId], references: [id])
+
+  @@index([owner], name: "index_order_owner")
+  @@index([orderDate], name: "index_order_orderDate")
+}
+
+model OrderItem {
+  id          String    @id @default(auto()) @map("_id") @db.ObjectId
+  orderId     String    @db.ObjectId
+  order       Order    @relation(fields: [orderId], references: [id])
+  recipeId    String    @db.ObjectId
+  recipe      Recipe @relation(fields: [recipeId], references: [id])
+  quantity    Int
+  price       Float
+  deletedAt   DateTime?
+  
+  @@index([orderId], name: "index_orderItem_orderId")
+}
+
+model Supplier{
+  id          String    @id @default(auto()) @map("_id") @db.ObjectId
+  name        String    @unique
+  phoneNumber String?
+  ingredients Ingredient[]
+  supplies    Supply[]
+  equipments  Equipment[]
+  //relacion con usuario
+  userId      String    @db.ObjectId
+  user        User @relation(fields: [userId], references: [id])
+
+}
