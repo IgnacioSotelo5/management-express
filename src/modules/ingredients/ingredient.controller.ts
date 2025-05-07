@@ -1,5 +1,4 @@
 import { IngredientModel } from "@/modules/ingredients/ingredient.model";
-import { Ingredient } from "@/modules/ingredients/ingredient.schema";
 import { NextFunction, Request, Response } from "express";
 import { IngredientService } from "./ingredient.service";
 
@@ -7,9 +6,10 @@ export class IngredientController{
 
     static async getIngredientByID(req: Request, res: Response, next: NextFunction): Promise<void>{
         const {id} = req.params
+        const {userId} = req.user
 
         try {
-            const data = await IngredientService.getIngredientById({id})
+            const data = await IngredientService.getIngredientById({id, userId})
             res.status(200).json({data})
         } catch (error) {
             next(error)
