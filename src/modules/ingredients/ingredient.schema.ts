@@ -14,7 +14,7 @@ export const ingredientSchema = z.object({
     totalUnit: z.number().int().optional(),
     category: CategorySchema,
     supplier: SupplierSchema,
-    user: userSchema,
+    user: userSchema.optional(),
     expirationDate: z.string().transform((str) => new Date(str)),
     stockQuantity: z.number().optional(),
     reorderLevel: z.number().optional(),

@@ -9,9 +9,9 @@ export class AuthService{
     static async signup({name, lastName, email, password}: userRegisterDTO){
         const newUser: Omit<userRegisterDTO, "password"> = await UserService.createUser({name, lastName, email, password})
         const payload = {
-            id: newUser.id,
+            userId: newUser.id,
             email: newUser.email,
-            role: newUser.role
+            role: newUser.role,
         }
         const token = await genJWTToken(payload, "1h")
         return {user: newUser, token}

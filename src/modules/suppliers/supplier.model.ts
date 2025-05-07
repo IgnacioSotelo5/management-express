@@ -2,14 +2,19 @@ import prisma from "@/config/prisma";
 import { Supplier } from "./supplier.schema";
 
 export class SupplierModel{
-    static async getOrCreateSupplier({name, phoneNumber}: Supplier){
+    static async getOrCreateSupplier({name, phoneNumber, userId}: Supplier){
         try {
             const supplier = await prisma.supplier.upsert({
                 where: {name},
                 update: {},
                 create: {
                     name, 
-                    phoneNumber
+                    phoneNumber,
+                    user: {
+                        connect:{
+                            id: userId
+                        }
+                    }
                 }
             })
     
