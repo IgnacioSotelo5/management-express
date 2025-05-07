@@ -35,7 +35,7 @@ export class IngredientModel{
         }
     }
 
-    static async createIngredient({ingredient}: {ingredient: Ingredient}){
+    static async createIngredient({ingredient, userId}: {ingredient: Ingredient, userId: string}){
         try {
             const newIngredient = await prisma.ingredient.create({
                 data: {
@@ -52,7 +52,7 @@ export class IngredientModel{
                     },
                     user: {
                         connect: {
-                            id: ingredient.user.id
+                            id: userId
                         }
                     }
                 }
@@ -64,11 +64,11 @@ export class IngredientModel{
         }
     }
 
-    static async updateIngredient({id, data, categoryUpdate, supplierUpdate}:{id: string, data: updateIngredient, categoryUpdate: any, supplierUpdate: any}){       
+    static async updateIngredient({id, data, categoryUpdate, supplierUpdate, userId}:{id: string, data: updateIngredient, categoryUpdate: any, supplierUpdate: any, userId: string}){       
         
         try {
             const updatedIngredient = await prisma.ingredient.update({
-                where: {id},
+                where: {id, userId},
                 data: {
                     name: data.name,
                     pricePerUnit: data.pricePerUnit,

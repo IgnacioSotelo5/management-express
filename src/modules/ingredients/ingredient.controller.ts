@@ -17,8 +17,9 @@ export class IngredientController{
     }
 
     static async getAllIngredients(req: Request, res: Response, next: NextFunction): Promise<void>{
+        const {userId} = req.user
         try {
-            const data = await IngredientService.getAllIngredients()
+            const data = await IngredientService.getAllIngredients({userId})
             res.status(200).json({data})
         } catch (error: any) {
             next(error)
@@ -27,7 +28,8 @@ export class IngredientController{
     
     static async createIngredient(req: Request, res: Response, next: NextFunction): Promise<void>{
         const {name, pricePerUnit, unit, totalUnit, category, supplier, expirationDate,stockQuantity, reorderLevel} = req.body
-        const ingredient: Ingredient = {
+        const {userId} = req.user
+        const ingredient = {
             name,
             pricePerUnit, 
             unit, 
@@ -39,7 +41,10 @@ export class IngredientController{
             reorderLevel
         }
         try {
-            const result = await IngredientService.createIngredient({ingredient})
+            const result = await IngredientService.createIngredient({
+                ingredient,
+                userId
+            })
             res.status(201).json({result})
 
         } catch (error: any) {
@@ -51,9 +56,10 @@ export class IngredientController{
 
     static async updateIngredient(req: Request, res: Response, next: NextFunction): Promise<void>{
         const {id} = req.params
+        const {userId} = req.user
         
         try {
-            const result = await IngredientService.updateIngredient({id, ingredient: req.body})
+            const result = await IngredientService.updateIngredient({id, ingredient: req.body, userId})
             res.status(200).json(result)
         } catch (error) {
             next(error)

@@ -7,20 +7,20 @@ import { SupplierModel } from "../suppliers/supplier.model";
 
 export class IngredientService{
 
-    static async getAllIngredients(){
-        return await IngredientModel.getAllIngredients()
+    static async getAllIngredients({userId}: {userId: string}){
+        return await IngredientModel.getAllIngredients({userId})
     }
 
-    static async getIngredientById({id}: {id: string}){
+    static async getIngredientById({id, userId}: {id: string, userId: string}){
         if(!id){
             throw new BadRequestError("No ID provided")
         }
-        return await IngredientModel.getIngredientByID({id})
+        return await IngredientModel.getIngredientByID({id, userId})
     }
 
-    static async createIngredient({ingredient}: {ingredient: Ingredient}){
-        if(!ingredient){
-            throw new BadRequestError("No ingredient provided")
+    static async createIngredient({ingredient, userId}: {ingredient: Ingredient, userId: string}){
+        if(!ingredient || !userId){
+            throw new BadRequestError('There is required data missing. Please check the request.')
         }
         const {name: categoryName, description} = ingredient.category
         const category = await CategoryModel.getOrCreateCategory({name: categoryName, type: "ingredients", description})
@@ -28,14 +28,15 @@ export class IngredientService{
         const {name, phoneNumber} = ingredient.supplier
         const supplier = await SupplierModel.getOrCreateSupplier({name, phoneNumber})
 
-        return await IngredientModel.createIngredient({ingredient: {...ingredient, category, supplier}})
+        return await IngredientModel.createIngredient({ingredient: {...ingredient, category, supplier}, userId})
     }
 
-    static async updateIngredient({id, ingredient}: {id: string, ingredient: updateIngredient}){
+    static async updateIngredient({id, ingredient, userId}: {id: string, ingredient: updateIngredient, userId: string}){
         const data = ingredient
 
-        //Verificamos si existe el ingrediente, si no el existe el modelo se encarga de lanzar un error personalizado
-        await IngredientModel.getIngredientByID({id})
+        //Verificamos si existe el ingrediente, si no el existe el modelo se encarga de lanzar un error personalizado,
+        //usamos el id y el userId para evitar que un usuario pueda modificar ingredientes de otros usuarios
+        await IngredientModel.getIngredientByID({id, userId})
         
         const categoryUpdate = data.category ? {
             connectOrCreate: {
@@ -62,15 +63,15 @@ export class IngredientService{
             : { disconnect: true }
         : undefined
         
-        return await IngredientModel.updateIngredient({id, data, categoryUpdate, supplierUpdate})
+        return await IngredientModel.updateIngredient({id, data, categoryUpdate, supplierUpdate, userId})
     }
 
-    static async deleteIngredient({id}: {id: string}){
+    static async deleteIngredient({id, userId}: {id: string, userId: string}){
         if(!id){
             throw new BadRequestError('No id provided')
         }
 
-        const existingIngredient = await IngredientModel.getIngredientByID({id})
+        const existingIngredient = await IngredientModel.getIngredientByID({id, userId})
 
         if(!existingIngredient) throw new NotFoundError('Ingredient not found in DB.')
 
