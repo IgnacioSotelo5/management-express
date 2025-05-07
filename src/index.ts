@@ -16,7 +16,7 @@ app.use(corsMiddleware())
 
 app.use("/auth", authRouter);
 app.use("/ingredient", ingredientRouter);
-
+app.get("/test", (req,res) => {res.send("Hello world")})
 // Middleware de manejo de errores
 app.use(errorHandler);
 
