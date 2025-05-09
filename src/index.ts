@@ -5,6 +5,7 @@ import { PORT } from "./config/config";
 import { corsMiddleware } from "./shared/middlewares/cors";
 import { ingredientRouter } from "./modules/ingredients/ingredient.routes";
 import { errorHandler } from "./shared/middlewares/errorHandler";
+import { authMiddleware } from "./shared/middlewares/authMiddleware";
 
 const app = express();
 const port = PORT;
@@ -15,6 +16,7 @@ app.use(express.json());
 app.use(corsMiddleware())
 
 app.use("/auth", authRouter);
+app.use(authMiddleware)
 app.use("/ingredient", ingredientRouter);
 app.get("/test", (req,res) => {res.send("Hello world")})
 // Middleware de manejo de errores
