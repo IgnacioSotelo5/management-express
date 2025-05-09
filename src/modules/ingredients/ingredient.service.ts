@@ -26,7 +26,7 @@ export class IngredientService{
         const category = await CategoryModel.getOrCreateCategory({name: categoryName, type: "ingredients", description})
 
         const {name, phoneNumber} = ingredient.supplier
-        const supplier = await SupplierModel.getOrCreateSupplier({name, phoneNumber})
+        const supplier = await SupplierModel.getOrCreateSupplier({name, phoneNumber, userId})
 
         return await IngredientModel.createIngredient({ingredient: {...ingredient, category, supplier}, userId})
     }
