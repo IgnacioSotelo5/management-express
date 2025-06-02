@@ -8,7 +8,7 @@ import { asyncHandler } from "@/shared/utils/async-handler";
 
 export const ingredientRouter = Router();
 
-ingredientRouter.get('/', IngredientController.getAllIngredients)
+ingredientRouter.get('/', asyncHandler(IngredientController.getAllIngredients))
 ingredientRouter.get('/:id', validateParams(paramsSchema), asyncHandler(IngredientController.getIngredientByID))
 ingredientRouter.post('/', validateSchema(ingredientSchema), asyncHandler(IngredientController.createIngredient))
 ingredientRouter.patch('/:id', validateParams(paramsSchema), validateSchema(updateIngredientSchema), asyncHandler(IngredientController.updateIngredient))
