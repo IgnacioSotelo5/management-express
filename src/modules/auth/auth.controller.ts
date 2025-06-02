@@ -17,6 +17,8 @@ export class AuthController{
         const { email, password } = req.body
         
         const {sanitizedUser: user, token} = await AuthService.login({email, password})
+
+        
         res.status(200).json({success: true, data: {
             message: 'User logged in successfully', 
             user, 

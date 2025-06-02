@@ -23,7 +23,7 @@ export class IngredientService{
             throw new BadRequestError('There is required data missing. Please check the request.')
         }
         const {name: categoryName, description} = ingredient.category
-        const category = await CategoryModel.getOrCreateCategory({name: categoryName, type: "ingredients", description})
+        const category = await CategoryModel.getOrCreateCategory({name: categoryName, type: "INGREDIENTS", description, userId})
 
         const {name, phoneNumber} = ingredient.supplier
         const supplier = await SupplierModel.getOrCreateSupplier({name, phoneNumber, userId})

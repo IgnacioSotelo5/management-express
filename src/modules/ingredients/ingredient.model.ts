@@ -9,7 +9,9 @@ export class IngredientModel{
             const ingredient = await prisma.ingredient.findUnique({
                 where: {
                     id,
-                    userId
+                    bakery: {
+                        ownerId: userId
+                    }
                 }
             })
 
@@ -26,7 +28,11 @@ export class IngredientModel{
     static async getAllIngredients({userId}: {userId: string}){
         try {
             const result = await prisma.ingredient.findMany({
-               where: { userId }
+               where: { 
+                    bakery: {
+                        ownerId: userId
+                    }
+                }
             })
 
             return result
@@ -50,9 +56,9 @@ export class IngredientModel{
                             id: ingredient.supplier.id
                         }
                     },
-                    user: {
+                    bakery: {
                         connect: {
-                            id: userId
+                            ownerId: userId
                         }
                     }
                 }
@@ -68,7 +74,12 @@ export class IngredientModel{
         
         try {
             const updatedIngredient = await prisma.ingredient.update({
-                where: {id, userId},
+                where: {
+                    id, 
+                    bakery: {
+                        ownerId: userId
+                    }
+                },
                 data: {
                     name: data.name,
                     pricePerUnit: data.pricePerUnit,

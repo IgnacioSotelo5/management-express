@@ -10,7 +10,7 @@ export class IngredientController{
 
         try {
             const data = await IngredientService.getIngredientById({id, userId})
-            res.status(200).json({data})
+            res.status(200).json(data)
         } catch (error) {
             next(error)
         }
@@ -20,7 +20,7 @@ export class IngredientController{
         const {id: userId} = req.user
         try {
             const data = await IngredientService.getAllIngredients({userId})
-            res.status(200).json({data})
+            res.status(200).json(data)
         } catch (error: any) {
             next(error)
         }
@@ -47,7 +47,7 @@ export class IngredientController{
                 userId
             })
             
-            res.status(201).json({result})
+            res.status(201).json(result)
 
         } catch (error: any) {            
             next(error)

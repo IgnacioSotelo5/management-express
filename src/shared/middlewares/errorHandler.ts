@@ -5,6 +5,7 @@ export const errorHandler = (e: any, req: Request, res: Response, next: NextFunc
     if(e instanceof AppError){
         res.status(e.status).json({message: e.message})
     } else {
+        console.error("Unhandled error:", e)
         res.status(500).json({message: "Internal server error"})
     }
 }
