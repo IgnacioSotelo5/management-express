@@ -49,14 +49,28 @@ export class CategoryController {
     }
 
     static async updateCategory(req: Request, res: Response, next: NextFunction){
+        const {name, type, description} = req.body
+        const {id: userId} = req.user
+        const {id} = req.params        
 
+        try {
+            const data = await CategoryService.updateCategory({id, name, type, description, userId})
+            
+            res.status(200).json(data)
+        } catch (error) {
+            next(error)
+        }
     }
 
     static async deleteCategory(req: Request, res: Response, next: NextFunction){
+        const {id} = req.params 
 
+        try {
+            const data = await CategoryService.deleteCategory({id})
+            res.status(200).json(data)
+        } catch (error) {
+            next(error)
+        }
     }
 
-    static async categoryExists(req: Request, res: Response, next: NextFunction){
-
-    }
 }

@@ -11,12 +11,7 @@ export const categorySchema = z.object({
     bakery: bakerySchema.optional()
 })
 
-export const updateIngredientCategorySchema = z.object({
-    params: z.object({
-        id: z.string().refine((val) => ObjectId.isValid(val))
-    }),
-    body: categorySchema.partial()
-})
+export const updateCategorySchema = categorySchema.partial()
 
 export type Category = z.infer<typeof categorySchema>
-export type updateCategory = z.infer<typeof updateIngredientCategorySchema>
+export type UpdateCategory = z.infer<typeof updateCategorySchema>

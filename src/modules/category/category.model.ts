@@ -1,5 +1,6 @@
 import prisma from "@/config/prisma";
-import { Category, updateCategory } from "@/modules/category/category.schema";
+import { Category, UpdateCategory } from "@/modules/category/category.schema";
+import { NotFoundError } from "@/shared/errors/not-found.error";
 
 export class CategoryModel{
 
@@ -26,7 +27,6 @@ export class CategoryModel{
                 },
 
             })
-            console.log(result);
             
             return result
         } catch (error: any) {
@@ -38,10 +38,8 @@ export class CategoryModel{
         try {    
             const category = await prisma.category.findFirst({
                 where: {
+                    id,
                     OR: [
-                        {
-                            id
-                        },
                         {
                             bakery: {
                                 ownerId: userId
@@ -53,8 +51,6 @@ export class CategoryModel{
                     ]
                 }
             })
-
-            console.log(category);
             
 
             return category
@@ -74,6 +70,10 @@ export class CategoryModel{
                         id: true
                     }
                 })
+
+                if(!bakery){
+                    throw new NotFoundError('Bakery not found for the attached user')
+                }
                 
                 const newCategory = await prisma.category.create({
                     data: {
@@ -131,26 +131,24 @@ export class CategoryModel{
         }
     }
 
-    static async updateCategory({params, body}: updateCategory): Promise<Category>{
-        const {name, description, type} = body
-        const {id} = params
-
+    static async updateCategory({id, name, type, description}: UpdateCategory): Promise<Category>{
         try {
             const updatedCategory = await prisma.category.update({
                 where: {
                     id
-                },
+                }, 
                 data: {
-                    name, 
-                    description, 
-                    type
+                    name: name,
+                    type: type,
+                    description: description,
                 }
             })
 
             return updatedCategory
-        } catch (error: any) {
+        } catch (error) {
             throw error
         }
+        
     }
 
     static async deleteCategory({id}: {id: string}): Promise<Category>{
