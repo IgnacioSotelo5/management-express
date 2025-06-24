@@ -15,6 +15,12 @@ enum OrderStatus{
   CANCELLED
 }
 
+enum CategoryType{
+  INGREDIENTS
+  SUPPLY
+  EQUIPMENT
+}
+
 model User {
   id          String    @id @default(auto()) @map("_id") @db.ObjectId
   name        String
@@ -24,17 +30,33 @@ model User {
   role        String
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
-  ingredients Ingredient[]
-  recipes     Recipe[]
-  supplies    Supply[]
-  equipments  Equipment[]
-  categories  Category[]
+  bakery      Bakery?
   orders      Order[]
-  suppliers   Supplier[]
 
   @@index([name], name: "name_index")
   @@index([createdAt], name: "index_user_createdAt")
 }
+
+model Bakery {
+  id          String    @id @default(auto()) @map("_id") @db.ObjectId
+  name        String
+  address     String
+  owner       User      @relation(fields: [ownerId], references: [id])
+  ownerId     String    @unique @db.ObjectId  // Bakery owner (User)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  orders      Order[]
+  
+  // Bakery-specific models (these can link to your other models like ingredients, supplies, recipes)
+  ingredients Ingredient[]  // Ingredients for the bakery
+  supplies    Supply[]      // Supplies for the bakery
+  recipes     Recipe[]      // Recipes for the bakery
+  equipments  Equipment[]
+  categories  Category[]
+  suppliers   Supplier[]
+  
+}
+
 
 
 model Recipe {
@@ -49,8 +71,8 @@ model Recipe {
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
   deletedAt   DateTime?
-  userId      String    @db.ObjectId
-  user        User      @relation(fields: [userId], references: [id])
+  bakeryId    String    @db.ObjectId
+  bakery      Bakery     @relation(fields: [bakeryId], references: [id])
 
   OrderItem OrderItem[]
 
@@ -67,7 +89,7 @@ model Ingredient {
   totalUnit      Int?
   categoryId     String          @db.ObjectId
   category       Category @relation(fields: [categoryId], references: [id])
-  supplierId     String          @db.ObjectId
+  supplierId     String?          @db.ObjectId
   supplier       Supplier? @relation(fields: [supplierId], references: [id])
   expirationDate DateTime?
   stockQuantity  Int?
@@ -78,8 +100,8 @@ model Ingredient {
   updatedAt      DateTime        @updatedAt
   recipeIDs      String[]        @db.ObjectId
   recipes        Recipe[] @relation(fields: [recipeIDs], references: [id])
-  userId         String          @db.ObjectId
-  user           User @relation(fields: [userId], references: [id])
+  bakeryId         String          @db.ObjectId
+  bakery         Bakery @relation(fields: [bakeryId], references: [id])
 
   @@index([name], name: "name_index")
   @@index([categoryId], name: "index_ingredient_categoryId")
@@ -113,8 +135,8 @@ model Supply {
   deletedAt      DateTime?
   stockQuantity  Int?
   reorderLevel   Int?
-  userId         String          @db.ObjectId
-  user           User @relation(fields: [userId], references: [id])
+  bakeryId       String          @db.ObjectId
+  bakery         Bakery @relation(fields: [bakeryId], references: [id])
 }
 
 // Modelo para Equipamiento
@@ -132,25 +154,25 @@ model Equipment {
   deletedAt      DateTime?
   stockQuantity  Int?
   reorderLevel   Int?
-  userId         String          @db.ObjectId
-  user           User @relation(fields: [userId], references: [id])
+  bakeryId       String          @db.ObjectId
+  bakery         Bakery @relation(fields: [bakeryId], references: [id])
 }
 
 model Category{
   id          String    @id @default(auto()) @map("_id") @db.ObjectId
-  name        String    @unique
+  name        String
   description String?
-  type        String    //Values 'ingredients' | 'supply' | 'equipment'
+  type        CategoryType    ///Values 'ingredients' | 'supply' | 'equipment'
   //relacion con usuario opcional
-  userId      String?   @db.ObjectId //si es null es una categoria global
-  user        User?     @relation(fields: [userId], references: [id])
+  bakeryId    String?   @db.ObjectId ///si es null es una categoria global
+  bakery      Bakery?     @relation(fields: [bakeryId], references: [id])
   
   ingredients Ingredient[]
   supplies    Supply[]
   equipments  Equipment[]
   commonIngredients IngredientCatalog[]
 
-  @@unique([name, userId], name: "unique_category_per_user")
+  @@unique([name, bakeryId], name: "unique_category_per_bakery")
 }
 
 model Order {
@@ -168,6 +190,8 @@ model Order {
   //relacion con usuario
   userId      String    @db.ObjectId
   user        User @relation(fields: [userId], references: [id])
+  bakeryId    String    @db.ObjectId
+  bakery      Bakery    @relation(fields: [bakeryId], references: [id])
 
   @@index([owner], name: "index_order_owner")
   @@index([orderDate], name: "index_order_orderDate")
@@ -188,13 +212,14 @@ model OrderItem {
 
 model Supplier{
   id          String    @id @default(auto()) @map("_id") @db.ObjectId
-  name        String    @unique
+  name        String
   phoneNumber String?
   ingredients Ingredient[]
   supplies    Supply[]
   equipments  Equipment[]
   //relacion con usuario
-  userId      String    @db.ObjectId
-  user        User @relation(fields: [userId], references: [id])
+  bakeryId    String    @db.ObjectId
+  bakery        Bakery @relation(fields: [bakeryId], references: [id])
 
+  @@unique([name, bakeryId], name: "unique_supplier_per_bakery")
 }
