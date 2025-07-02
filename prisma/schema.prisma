@@ -218,8 +218,10 @@ model Supplier{
   supplies    Supply[]
   equipments  Equipment[]
   //relacion con usuario
+  //a diferencia del modelo category, los proveedores siempre estaran relacionados
+  //a una panaderia, no pueden ser globales
   bakeryId    String    @db.ObjectId
-  bakery        Bakery @relation(fields: [bakeryId], references: [id])
+  bakery      Bakery @relation(fields: [bakeryId], references: [id])
 
   @@unique([name, bakeryId], name: "unique_supplier_per_bakery")
 }
