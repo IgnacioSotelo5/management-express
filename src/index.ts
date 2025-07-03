@@ -7,6 +7,7 @@ import { ingredientRouter } from "./modules/ingredients/ingredient.routes";
 import { errorHandler } from "./shared/middlewares/errorHandler";
 import { authMiddleware } from "./shared/middlewares/authMiddleware";
 import { categoryRouter } from "./modules/category/category.routes";
+import { supplierRouter } from "./modules/suppliers/supplier.routes";
 
 const app = express();
 const port = PORT;
@@ -19,7 +20,8 @@ app.use(corsMiddleware())
 app.use("/auth", authRouter);
 app.use(authMiddleware)
 app.use("/ingredient", ingredientRouter);
-app.use("/category", categoryRouter)
+app.use("/category", categoryRouter);
+app.use("/supplier", supplierRouter);
 app.get("/test", (req,res) => {res.send("Hello world")})
 // Middleware de manejo de errores
 app.use(errorHandler);

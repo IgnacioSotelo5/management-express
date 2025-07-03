@@ -1,7 +1,7 @@
 
 import { z } from "zod";
 import { categorySchema } from "../category/category.schema";
-import { SupplierSchema } from "../suppliers/supplier.schema"
+import { supplierSchema, updateSupplierSchema } from "../suppliers/supplier.schema"
 import { userSchema } from "../users/user.schema";
 
 
@@ -12,7 +12,7 @@ export const ingredientSchema = z.object({
     unit: z.string().refine((val) => ['g', 'kg', 'cc', 'lts', 'u'].includes(val), {message: 'Invalid unit value'}),
     totalUnit: z.number().int().optional(),
     category: categorySchema,
-    supplier: SupplierSchema,
+    supplier: supplierSchema,
     user: userSchema.optional(),
     expirationDate: z.string().transform((str) => new Date(str)),
     stockQuantity: z.number().optional(),
@@ -25,7 +25,7 @@ export const updateIngredientSchema = z.object({
         unit: z.string().refine((val) => ['g', 'kg', 'cc', 'lts', 'u'].includes(val), {message: 'Invalid unit value'}),
         totalUnit: z.number().int().optional(),
         category: categorySchema,
-        supplier: SupplierSchema,
+        supplier: updateSupplierSchema,
         expirationDate: z.string().transform((str) => new Date(str)),
         stockQuantity: z.number().optional(),
         reorderLevel: z.number().optional(),
