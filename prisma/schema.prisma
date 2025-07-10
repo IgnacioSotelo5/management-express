@@ -5,7 +5,6 @@ generator client {
 datasource db {
   provider = "mongodb"
   url      = env("DATABASE_URL")
-
 }
 
 enum OrderStatus{
@@ -20,6 +19,14 @@ enum CategoryType{
   SUPPLY
   EQUIPMENT
 }
+
+//FUTURE: enums OrderChannel to diff btw internal orders (bakery orders) and external orders (customers orders)
+// and DeliveryType to diff btw delivery by bakery or from our delivery service
+//FUTURE: enum OrderType to diff btw normal orders and subscriptions
+//FUTURE: enum OrderPaymentMethod to diff btw cash, card, etc.
+
+//FUTURE: enum UserRole to difference between admin, customers, deliveries, etc.
+//Not all the users will need bakery, orders, etc.
 
 model User {
   id          String    @id @default(auto()) @map("_id") @db.ObjectId
@@ -37,10 +44,13 @@ model User {
   @@index([createdAt], name: "index_user_createdAt")
 }
 
+//FUTURE: model Customer to separate management of bakery owners from consumers customers
+
 model Bakery {
   id          String    @id @default(auto()) @map("_id") @db.ObjectId
   name        String
   address     String
+  //Separate the address in street, city, and country to enhance the localization experience.
   owner       User      @relation(fields: [ownerId], references: [id])
   ownerId     String    @unique @db.ObjectId  // Bakery owner (User)
   createdAt   DateTime  @default(now())
@@ -79,6 +89,8 @@ model Recipe {
   @@index([name], name: "name_index")
   @@index([ingredientsIDs], name: "index_recipe_ingredientsIDs")
 }
+
+//FUTURE: model Product to represent finished products that can be sold, which can be linked to recipes
 
 // Modelo para Ingredientes
 model Ingredient {
@@ -175,6 +187,8 @@ model Category{
   @@unique([name, bakeryId], name: "unique_category_per_bakery")
 }
 
+//FUTURE: order property userId will change to optional 
+// to allow order from users not related to a bakery, also user property will be optional
 model Order {
   id          String    @id @default(auto()) @map("_id") @db.ObjectId
   items       OrderItem[]
@@ -196,6 +210,11 @@ model Order {
   @@index([owner], name: "index_order_owner")
   @@index([orderDate], name: "index_order_orderDate")
 }
+
+//add tracking status to Order, FUTURE: enum OrderTrackingStatus to track order status
+//FUTURE: create DeliveryPerson model to track delivery persons
+//add tipAmount to Order model
+
 
 model OrderItem {
   id          String    @id @default(auto()) @map("_id") @db.ObjectId
