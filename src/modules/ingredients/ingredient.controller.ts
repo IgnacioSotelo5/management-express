@@ -27,7 +27,7 @@ export class IngredientController{
     }
     
     static async createIngredient(req: Request, res: Response, next: NextFunction): Promise<void>{
-        const {name, pricePerUnit, unit, totalUnit, category, supplier, expirationDate,stockQuantity, reorderLevel} = req.body
+        const {name, pricePerUnit, unit, totalUnit, categoryId, supplierId, expirationDate, stockQuantity, reorderLevel} = req.body
         const {id: userId} = req.user
         
         const ingredient = {
@@ -35,8 +35,8 @@ export class IngredientController{
             pricePerUnit, 
             unit, 
             totalUnit, 
-            category, 
-            supplier, 
+            categoryId, 
+            supplierId, 
             expirationDate, 
             stockQuantity, 
             reorderLevel

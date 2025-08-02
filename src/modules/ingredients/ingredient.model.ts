@@ -42,18 +42,19 @@ export class IngredientModel{
     }
 
     static async createIngredient({ingredient, userId}: {ingredient: Ingredient, userId: string}){
+        const {categoryId, supplierId, ...data} = ingredient
         try {
             const newIngredient = await prisma.ingredient.create({
                 data: {
-                    ...ingredient,
+                    ...data,         
                     category: {
                         connect: {
-                            id: ingredient.category.id
+                            id: ingredient.categoryId
                         }
                     },
                     supplier: {
                         connect: {
-                            id: ingredient.supplier.id
+                            id: ingredient.supplierId
                         }
                     },
                     bakery: {

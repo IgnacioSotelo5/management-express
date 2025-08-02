@@ -22,13 +22,20 @@ export class IngredientService{
         if(!ingredient || !userId){
             throw new BadRequestError('There is required data missing. Please check the request.')
         }
-        const {name: categoryName, description} = ingredient.category
-        const category = await CategoryModel.getOrCreateCategory({name: categoryName, type: "INGREDIENTS", description, userId})
 
-        const {name, phoneNumber} = ingredient.supplier
-        const supplier = await SupplierModel.getOrCreateSupplier({name, phoneNumber, userId})
+        const category = await CategoryModel.getCategoryById({id: ingredient.categoryId, userId})
+        if(!category) { 
+            throw new NotFoundError(`Category with ID ${ingredient.categoryId} not found.`)
+        }
 
-        return await IngredientModel.createIngredient({ingredient: {...ingredient, category, supplier}, userId})
+        if(ingredient.supplierId){
+            const supplier = await SupplierModel.getSupplierById({id: ingredient.supplierId, userId})
+            if(!supplier) {
+                throw new NotFoundError(`Supplier with ID ${ingredient.supplierId} not found.`)
+            }
+        }
+
+        return await IngredientModel.createIngredient({ingredient, userId})
     }
 
     static async updateIngredient({id, ingredient, userId}: {id: string, ingredient: updateIngredient, userId: string}){
