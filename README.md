@@ -17,7 +17,7 @@ A backend API for a bakery management application, built with Node.js, Express, 
 - Express.js
 - TypeScript
 - Prisma ORM
-- MongoDB (or your chosen database)
+- MongoDB
 - JWT for authentication
 - Zod for validation
 - Helmet for security
