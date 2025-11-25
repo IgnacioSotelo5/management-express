@@ -1,10 +1,11 @@
 generator client {
-  provider = "prisma-client-js"
+  provider   = "prisma-client"
+  output = "../src/db/generated"
 }
 
 datasource db {
-  provider = "mongodb"
-  url      = env("DATABASE_URL")
+  provider = "postgresql"
+  url = env("DIRECT_URL")
 }
 
 enum OrderStatus{
@@ -29,7 +30,7 @@ enum CategoryType{
 //Not all the users will need bakery, orders, etc.
 
 model User {
-  id          String    @id @default(auto()) @map("_id") @db.ObjectId
+  id          String    @id @default(uuid()) @map("_id")
   name        String
   lastName    String
   email       String    @unique
@@ -37,22 +38,32 @@ model User {
   role        String
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
-  bakery      Bakery?
   orders      Order[]
 
-  @@index([name], name: "name_index")
+  //If the user is a bakery owner
+  ownedBakery Bakery?  @relation("BakeryOwner")
+
+  //If the user is an employee of a bakery
+  employeeAtId String?
+  employeeAt   Bakery? @relation("BakeryEmployees", fields: [employeeAtId], references: [id])
+
+  @@index([name], name: "user_name_index")
   @@index([createdAt], name: "index_user_createdAt")
 }
 
 //FUTURE: model Customer to separate management of bakery owners from consumers customers
 
 model Bakery {
-  id          String    @id @default(auto()) @map("_id") @db.ObjectId
+  id          String    @id @default(uuid()) @map("_id")
   name        String
   address     String
   //Separate the address in street, city, and country to enhance the localization experience.
-  owner       User      @relation(fields: [ownerId], references: [id])
-  ownerId     String    @unique @db.ObjectId  // Bakery owner (User)
+  //Owner relation
+  owner       User      @relation("BakeryOwner", fields: [ownerId], references: [id])
+  ownerId     String    @unique  // Bakery owner (User)
+  //Employees relation
+  employees   User[]    @relation("BakeryEmployees")
+  
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
   orders      Order[]
@@ -70,38 +81,36 @@ model Bakery {
 
 
 model Recipe {
-  id          String    @id @default(auto()) @map("_id") @db.ObjectId
+  id          String    @id @default(uuid()) @map("_id")
   name        String
   description String
-  ingredientsIDs String[] @db.ObjectId
-  ingredients Ingredient[] @relation(fields: [ingredientsIDs], references: [id])
-  steps       String[]
+  recipeIngredients RecipeIngredient[]
+  steps       Step[]
   category    String
   image       String
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
   deletedAt   DateTime?
-  bakeryId    String    @db.ObjectId
+  bakeryId    String    
   bakery      Bakery     @relation(fields: [bakeryId], references: [id])
 
   OrderItem OrderItem[]
 
   @@index([name], name: "name_index")
-  @@index([ingredientsIDs], name: "index_recipe_ingredientsIDs")
 }
 
 //FUTURE: model Product to represent finished products that can be sold, which can be linked to recipes
 
 // Modelo para Ingredientes
 model Ingredient {
-  id             String          @id @default(auto()) @map("_id") @db.ObjectId
+  id             String          @id @default(uuid()) @map("_id")
   name           String
   pricePerUnit   Float
   unit           String
   totalUnit      Int?
-  categoryId     String          @db.ObjectId
+  categoryId     String          
   category       Category @relation(fields: [categoryId], references: [id])
-  supplierId     String?          @db.ObjectId
+  supplierId     String?          
   supplier       Supplier? @relation(fields: [supplierId], references: [id])
   expirationDate DateTime?
   stockQuantity  Int?
@@ -110,73 +119,71 @@ model Ingredient {
   deletedAt      DateTime?
   createdAt      DateTime        @default(now())
   updatedAt      DateTime        @updatedAt
-  recipeIDs      String[]        @db.ObjectId
-  recipes        Recipe[] @relation(fields: [recipeIDs], references: [id])
-  bakeryId         String          @db.ObjectId
+  recipeIngredients RecipeIngredient[]
+  bakeryId         String          
   bakery         Bakery @relation(fields: [bakeryId], references: [id])
 
-  @@index([name], name: "name_index")
+  @@index([name], name: "ingredient_name_index")
   @@index([categoryId], name: "index_ingredient_categoryId")
-  @@index([recipeIDs], name: "index_ingredient_recipeIDs")
 }
 
 // Modelo para el catalogo de ingredientes básico
 
 model IngredientCatalog {
-  id            String        @id @default(auto()) @map("_id") @db.ObjectId
+  id            String        @id @default(uuid()) @map("_id")
   name          String
   pricePerUnit  Float?
   unit          String
-  categoryId    String         @db.ObjectId
+  categoryId    String         
   category      Category       @relation(fields: [categoryId], references: [id])
 }
 
 
 // Modelo para Suministros
 model Supply {
-  id             String          @id @default(auto()) @map("_id") @db.ObjectId
+  id             String          @id @default(uuid()) @map("_id")
   name           String
   pricePerUnit   Float
   unit           String
   totalUnit      Int?
-  categoryId     String          @db.ObjectId
+  categoryId     String          
   category       Category @relation(fields: [categoryId], references: [id])
-  supplierId     String? @db.ObjectId
+  supplierId     String? 
   supplier       Supplier? @relation(fields: [supplierId], references: [id])
   expirationDate DateTime?
   deletedAt      DateTime?
   stockQuantity  Int?
   reorderLevel   Int?
-  bakeryId       String          @db.ObjectId
+  bakeryId       String          
   bakery         Bakery @relation(fields: [bakeryId], references: [id])
 }
 
 // Modelo para Equipamiento
 model Equipment {
-  id             String          @id @default(auto()) @map("_id") @db.ObjectId
+  id             String          @id @default(uuid()) @map("_id")
   name           String
   pricePerUnit   Float
   unit           String
   totalUnit      Int?
-  categoryId     String          @db.ObjectId
+  categoryId     String          
   category       Category @relation(fields: [categoryId], references: [id])
-  supplierId     String?          @db.ObjectId
+  supplierId     String?          
   supplier       Supplier? @relation(fields: [supplierId], references: [id])
   expirationDate DateTime?
   deletedAt      DateTime?
   stockQuantity  Int?
   reorderLevel   Int?
-  bakeryId       String          @db.ObjectId
+  bakeryId       String          
   bakery         Bakery @relation(fields: [bakeryId], references: [id])
 }
 
 model Category{
-  id          String    @id @default(auto()) @map("_id") @db.ObjectId
+  id          String    @id @default(uuid()) @map("_id")
   name        String
   description String?
   type        CategoryType    ///Values 'ingredients' | 'supply' | 'equipment'
   //relacion con usuario opcional
-  bakeryId    String?   @db.ObjectId ///si es null es una categoria global
+  bakeryId    String?    ///si es null es una categoria global
   bakery      Bakery?     @relation(fields: [bakeryId], references: [id])
   
   ingredients Ingredient[]
@@ -184,13 +191,14 @@ model Category{
   equipments  Equipment[]
   commonIngredients IngredientCatalog[]
 
+  @@index([name], name: "category_name_index")
   @@unique([name, bakeryId], name: "unique_category_per_bakery")
 }
 
 //FUTURE: order property userId will change to optional 
 // to allow order from users not related to a bakery, also user property will be optional
 model Order {
-  id          String    @id @default(auto()) @map("_id") @db.ObjectId
+  id          String    @id @default(uuid()) @map("_id")
   items       OrderItem[]
   owner       String
   orderNumber String
@@ -202,9 +210,9 @@ model Order {
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
   //relacion con usuario
-  userId      String    @db.ObjectId
+  userId      String    
   user        User @relation(fields: [userId], references: [id])
-  bakeryId    String    @db.ObjectId
+  bakeryId    String    
   bakery      Bakery    @relation(fields: [bakeryId], references: [id])
 
   @@index([owner], name: "index_order_owner")
@@ -217,10 +225,10 @@ model Order {
 
 
 model OrderItem {
-  id          String    @id @default(auto()) @map("_id") @db.ObjectId
-  orderId     String    @db.ObjectId
+  id          String    @id @default(uuid()) @map("_id")
+  orderId     String    
   order       Order    @relation(fields: [orderId], references: [id])
-  recipeId    String    @db.ObjectId
+  recipeId    String    
   recipe      Recipe @relation(fields: [recipeId], references: [id])
   quantity    Int
   price       Float
@@ -230,7 +238,7 @@ model OrderItem {
 }
 
 model Supplier{
-  id          String    @id @default(auto()) @map("_id") @db.ObjectId
+  id          String    @id @default(uuid()) @map("_id")
   name        String
   phoneNumber String?
   ingredients Ingredient[]
@@ -239,8 +247,26 @@ model Supplier{
   //relacion con usuario
   //a diferencia del modelo category, los proveedores siempre estaran relacionados
   //a una panaderia, no pueden ser globales
-  bakeryId    String    @db.ObjectId
+  bakeryId    String    
   bakery      Bakery @relation(fields: [bakeryId], references: [id])
 
   @@unique([name, bakeryId], name: "unique_supplier_per_bakery")
+}
+
+// Modelo intermedio para la relación many-to-many entre Recipe e Ingredient
+model RecipeIngredient {
+  recipeId     String
+  ingredientId String
+  recipe       Recipe     @relation(fields: [recipeId], references: [id])
+  ingredient   Ingredient @relation(fields: [ingredientId], references: [id])
+  @@id([recipeId, ingredientId])
+}
+
+// Modelo para los pasos de una receta
+model Step {
+  id        String   @id @default(uuid())
+  recipeId  String
+  recipe    Recipe   @relation(fields: [recipeId], references: [id])
+  order     Int
+  text      String
 }

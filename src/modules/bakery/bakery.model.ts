@@ -1,5 +1,5 @@
-import prisma from "@/config/prisma";
-import { Bakery } from "@prisma/client";
+import { prisma } from "@/db/client";
+import { Bakery } from "@/db/generated/client";
 export class BakeryModel {
     static getBakeries(): Promise<Bakery[]>{
         try {

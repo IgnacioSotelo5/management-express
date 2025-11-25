@@ -1,6 +1,7 @@
-import prisma from "@/config/prisma";
+import { prisma } from "@/db/client";
+
 import { UpdateSupplier } from "./supplier.schema";
-import { Supplier } from "@prisma/client";
+import { Supplier } from "@/db/generated/client";
 
 export class SupplierModel{
 

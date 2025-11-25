@@ -38,7 +38,6 @@ export class CategoryController {
             const data = await CategoryService.createCategory({name, type, description, userId})
             res.status(200).json(data)
         } catch (error) {
-            console.error(error)
             next(error)
         }
     }

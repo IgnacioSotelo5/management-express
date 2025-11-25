@@ -1,4 +1,5 @@
-import prisma from "@/config/prisma";
+import { prisma } from "@/db/client";
+
 import { Category, UpdateCategory } from "@/modules/category/category.schema";
 import { NotFoundError } from "@/shared/errors/not-found.error";
 
