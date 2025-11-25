@@ -1,6 +1,7 @@
 import bcrypt from "bcrypt";
 import { SALT_ROUNDS } from "@/config/config";
-import prisma from "@/config/prisma";
+import { prisma } from "@/db/client";
+
 import { userRegisterDTO } from "@/modules/auth/auth.schema";
 import { NotFoundError } from "@/shared/errors/not-found.error";
 

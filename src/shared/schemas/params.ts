@@ -1,8 +1,7 @@
-import { ObjectId } from "mongodb";
 import { z } from "zod";
 
 export const idParamSchema = z.object({
-    id: z.string().refine((val)=> ObjectId.isValid(val), {message: 'Invalid ObjectId format'})
+    id: z.string().uuid('Invalid ID format. Must be a valid UUID.')
 })
 
 export const nameParamSchema = z.object({

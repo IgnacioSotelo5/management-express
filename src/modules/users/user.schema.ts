@@ -1,4 +1,3 @@
-import { ObjectId } from "mongodb";
 import { z } from "zod";
 
 const strongPasswordSchema = z.string()
@@ -18,7 +17,7 @@ export const userRegisterSchema = z.object({
 })
 
 export const userSchema = z.object({
-    id: z.string().refine((val) => ObjectId.isValid(val)).optional(),
+    id: z.string().uuid('Invalid user ID format. Must be a valid UUID.').optional(),
     name: z.string().min(1, 'Name cannot be empty'),
     lastName: z.string().min(1, 'Last name cannot be empty'),
     email: z.string().email('Must be a valid email'),

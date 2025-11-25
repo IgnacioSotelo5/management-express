@@ -1,4 +1,5 @@
-import prisma from "@/config/prisma";
+import { prisma } from "@/db/client";
+
 import { Ingredient, updateIngredient } from "@/modules/ingredients/ingredient.schema";
 import { NotFoundError } from "@/shared/errors/not-found.error";
 

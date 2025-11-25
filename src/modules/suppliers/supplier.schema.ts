@@ -1,8 +1,7 @@
-import { ObjectId } from "mongodb";
 import { z } from "zod";
 
 export const supplierSchema = z.object({
-  id: z.string().refine(ObjectId.isValid, { message: 'Invalid ID format' }).optional(),
+  id: z.string().uuid('Invalid ID format. Must be a valid UUID.').optional(),
   name: z.string().trim().min(1, 'Name is required'),
   phoneNumber: z
   .string()
@@ -13,7 +12,7 @@ export const supplierSchema = z.object({
      if (val === null) return true;
      return /^\+?[0-9\s-]+$/.test(val); 
   }, { message: 'Invalid phone number format' }),
-  userId: z.string().refine(ObjectId.isValid, { message: 'Invalid user ID format' }).optional(),
+  userId: z.string().uuid('Invalid user ID format. Must be a valid UUID.').optional(),
 })
 
 export const updateSupplierSchema = supplierSchema.partial()

@@ -3,7 +3,6 @@ import { z } from "zod";
 import { categorySchema } from "../category/category.schema";
 import { supplierSchema, updateSupplierSchema } from "../suppliers/supplier.schema"
 import { userSchema } from "../users/user.schema";
-import { ObjectId } from "mongodb";
 
 
 
@@ -12,8 +11,8 @@ export const ingredientSchema = z.object({
     pricePerUnit: z.number().positive().min(0, 'Price per unit should be provided'),
     unit: z.string().refine((val) => ['g', 'kg', 'cc', 'lts', 'u'].includes(val), {message: 'Invalid unit value'}),
     totalUnit: z.number().int().optional(),
-    categoryId: z.string().refine((val) => ObjectId.isValid(val)),
-    supplierId: z.string().refine((val) => ObjectId.isValid(val)).optional(),
+    categoryId: z.string().uuid('Invalid category ID format. Must be a valid UUID.'),
+    supplierId: z.string().uuid('Invalid supplier ID format. Must be a valid UUID.').optional(),
     user: userSchema.optional(),
     expirationDate: z.string().transform((str) => new Date(str)).optional(),
     stockQuantity: z.number().optional(),
