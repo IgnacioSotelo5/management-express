@@ -5,8 +5,11 @@ import { idParamSchema } from "@/shared/schemas/params";
 import { validateSchema } from "@/shared/middlewares/validateSchema";
 import { supplierSchema, updateSupplierSchema } from "./supplier.schema";
 import { asyncHandler } from "@/shared/utils/async-handler";
+import { checkBakeryAccess } from "@/shared/middlewares/checkBakeryAccess";
 
 export const supplierRouter = Router()
+
+supplierRouter.use(checkBakeryAccess)
 
 supplierRouter.get('/', asyncHandler(SupplierController.getSuppliers))
 supplierRouter.get('/:id', validateParams(idParamSchema), asyncHandler(SupplierController.getSupplierById))

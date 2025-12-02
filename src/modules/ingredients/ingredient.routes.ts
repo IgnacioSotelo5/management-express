@@ -5,8 +5,11 @@ import { ingredientSchema, updateIngredientSchema } from "@/modules/ingredients/
 import { idParamSchema } from "@/shared/schemas/params";
 import { Router } from "express";
 import { asyncHandler } from "@/shared/utils/async-handler";
+import { checkBakeryAccess } from "@/shared/middlewares/checkBakeryAccess";
 
 export const ingredientRouter = Router();
+
+ingredientRouter.use(checkBakeryAccess);
 
 ingredientRouter.get('/', asyncHandler(IngredientController.getAllIngredients))
 ingredientRouter.get('/:id', validateParams(idParamSchema), asyncHandler(IngredientController.getIngredientByID))
