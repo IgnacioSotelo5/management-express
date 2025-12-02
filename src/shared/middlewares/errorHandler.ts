@@ -1,6 +1,5 @@
 import { NextFunction, Request, Response } from "express";
 import { AppError } from "../errors/app.error";
-import { error } from "node:console";
 
 export const errorHandler = (e: any, req: Request, res: Response, next: NextFunction) => {    
     if(e instanceof AppError){

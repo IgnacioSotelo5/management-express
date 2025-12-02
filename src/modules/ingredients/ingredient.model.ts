@@ -1,18 +1,20 @@
 import { prisma } from "@/db/client";
+import { IngredientUpdateInput } from "@/db/generated/models";
 
 import { Ingredient, updateIngredient } from "@/modules/ingredients/ingredient.schema";
+import { ForbiddenError } from "@/shared/errors/forbidden.error";
 import { NotFoundError } from "@/shared/errors/not-found.error";
+import { getUserBakeryId } from "@/shared/utils/getUserBakeryId";
 
 export class IngredientModel{
 
     static async getIngredientByID({id, userId}: {id: string, userId: string}){
         try {
-            const ingredient = await prisma.ingredient.findUnique({
+            const isBakeryUser = await getUserBakeryId(userId)
+            const ingredient = await prisma.ingredient.findFirst({
                 where: {
                     id,
-                    bakery: {
-                        ownerId: userId
-                    }
+                    bakeryId: isBakeryUser || undefined
                 }
             })
 
@@ -22,17 +24,16 @@ export class IngredientModel{
     
             return ingredient
         } catch (error: any) {
-            throw new Error(error.message)
+            throw error
         }
     }
 
-    static async getAllIngredients({userId}: {userId: string}){
+    static async getAllIngredients({userId}: {userId: string}){        
         try {
+            const isBakeryUser = await getUserBakeryId(userId)
             const result = await prisma.ingredient.findMany({
                where: { 
-                    bakery: {
-                        ownerId: userId
-                    }
+                    bakeryId: isBakeryUser || undefined
                 }
             })
 
@@ -73,31 +74,58 @@ export class IngredientModel{
     }
 
     static async updateIngredient({id, data, categoryUpdate, supplierUpdate, userId}:{id: string, data: updateIngredient, categoryUpdate: any, supplierUpdate: any, userId: string}){       
-        
+        const user = await prisma.user.findUnique({
+            where: { id: userId },
+            select: { role: true }
+        })
         try {
-            const updatedIngredient = await prisma.ingredient.update({
-                where: {
-                    id, 
-                    bakery: {
-                        ownerId: userId
-                    }
-                },
-                data: {
+            const employeeAllowedFields = [
+                "name",
+                "stockQuantity",
+                "categoryId",
+                "supplierId",
+                "quantityUsed",
+                "expirationDate"
+            ];
+
+            const receivedFields = Object.keys(data);
+
+            if (user?.role === "employee") {
+                const invalidFields = receivedFields.filter(
+                    (field) => !employeeAllowedFields.includes(field)
+                );
+
+                if (invalidFields.length > 0) {
+                    throw new ForbiddenError(`Employees are not allowed to update the following fields: ${invalidFields.join(", ")}`);
+                }
+            }
+
+            let updatedData: IngredientUpdateInput = {}
+            if(user?.role === 'owner'){
+                updatedData = {
                     name: data.name,
-                    pricePerUnit: data.pricePerUnit,
-                    unit: data.unit,
-                    totalUnit: data.totalUnit,
-                    expirationDate: data.expirationDate,
-                    stockQuantity:data.stockQuantity,
-                    reorderLevel:data.reorderLevel,
                     category: categoryUpdate,
                     supplier: supplierUpdate
                 }
+            } else if(user?.role === 'employee'){
+                updatedData = {
+                    name: data.name,
+                    stockQuantity: data.stockQuantity,
+                    category: categoryUpdate,
+                    supplier: supplierUpdate
+                }
+            }
+            
+            const updatedIngredient = await prisma.ingredient.update({
+                where: {
+                    id
+                },
+                data: updatedData
             })
 
             return updatedIngredient
         } catch (error: any) {
-            throw new Error(`Error updating ingredient: ${error.message}`)
+            throw error
         }
     }
     
