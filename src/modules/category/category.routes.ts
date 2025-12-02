@@ -5,8 +5,11 @@ import { validateParams } from "@/shared/middlewares/validateParams";
 import { idParamSchema } from "@/shared/schemas/params";
 import { validateSchema } from "@/shared/middlewares/validateSchema";
 import { categorySchema, updateCategorySchema } from "./category.schema";
+import { checkBakeryAccess } from "@/shared/middlewares/checkBakeryAccess";
 
 export const categoryRouter = Router()
+
+categoryRouter.use(checkBakeryAccess)
 
 categoryRouter.get('/', asyncHandler(CategoryController.getCategories))
 categoryRouter.get('/:id', validateParams(idParamSchema), asyncHandler(CategoryController.getCategoryById))
