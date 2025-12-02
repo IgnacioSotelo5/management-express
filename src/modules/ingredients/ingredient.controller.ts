@@ -5,8 +5,8 @@ import { IngredientService } from "./ingredient.service";
 export class IngredientController{
 
     static async getIngredientByID(req: Request, res: Response, next: NextFunction): Promise<void>{
-        const {id} = req.params
-        const {id: userId} = req.user
+        const { id } = req.params
+        const { userId } = req.user
 
         try {
             const data = await IngredientService.getIngredientById({id, userId})
@@ -17,7 +17,8 @@ export class IngredientController{
     }
 
     static async getAllIngredients(req: Request, res: Response, next: NextFunction): Promise<void>{
-        const {id: userId} = req.user
+        const { userId } = req.user
+        
         try {
             const data = await IngredientService.getAllIngredients({userId})
             res.status(200).json(data)
@@ -28,7 +29,9 @@ export class IngredientController{
     
     static async createIngredient(req: Request, res: Response, next: NextFunction): Promise<void>{
         const {name, pricePerUnit, unit, totalUnit, categoryId, supplierId, expirationDate, stockQuantity, reorderLevel} = req.body
-        const {id: userId} = req.user
+        const { userId } = req.user
+
+        
         
         const ingredient = {
             name,
@@ -58,7 +61,7 @@ export class IngredientController{
 
     static async updateIngredient(req: Request, res: Response, next: NextFunction): Promise<void>{
         const {id} = req.params
-        const {userId} = req.user
+        const { userId } = req.user
         
         try {
             const result = await IngredientService.updateIngredient({id, ingredient: req.body, userId})

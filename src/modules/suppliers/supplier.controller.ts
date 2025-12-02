@@ -4,7 +4,7 @@ import { SupplierService } from "./supplier.service";
 export class SupplierController{
     static async createSupplier(req: Request, res: Response, next: NextFunction){
         const {name, phoneNumber} = req.body
-        const {id: userId} = req.user
+        const { userId } = req.user
         try {
             const data = await SupplierService.createSupplier({name, phoneNumber, userId})
             res.status(201).json(data)
@@ -15,7 +15,7 @@ export class SupplierController{
 
     static async getSuppliers(req: Request, res: Response, next: NextFunction){
         const {name} = req.query
-        const {id: userId} = req.user
+        const { userId } = req.user
 
         try {
             const data = await SupplierService.getSuppliers({userId, name: typeof name === 'string' ? name : undefined})
@@ -28,7 +28,7 @@ export class SupplierController{
 
     static async getSupplierById(req: Request, res: Response, next: NextFunction){
         const {id} = req.params
-        const {id: userId} = req.user
+        const { userId } = req.user
 
         try {
             const data = await SupplierService.getSupplierById({id, userId})
@@ -40,7 +40,7 @@ export class SupplierController{
 
     static async updateSupplier(req: Request, res: Response, next: NextFunction){
         const {id} = req.params
-        const {id: userId} = req.user
+        const { userId } = req.user
         const {name, phoneNumber} = req.body
 
         try {
@@ -57,7 +57,7 @@ export class SupplierController{
     /// Example: when deleting a user, delete bakery and the ingredients, suppliers, categories, etc that the user create
     static async deleteSupplier(req: Request, res: Response, next: NextFunction){
         const {id} = req.params
-        const {id: userId} = req.user
+        const { userId } = req.user
 
         try {
             await SupplierService.deleteSupplier({id, userId})
