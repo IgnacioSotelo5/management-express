@@ -84,6 +84,9 @@ model Recipe {
   id          String    @id @default(uuid()) @map("_id")
   name        String
   description String
+  profitMargin Float
+  cost        Float
+  suggestedPrice Float
   recipeIngredients RecipeIngredient[]
   steps       Step[]
   category    String
@@ -255,11 +258,12 @@ model Supplier{
 
 // Modelo intermedio para la relación many-to-many entre Recipe e Ingredient
 model RecipeIngredient {
-  recipeId     String
+  recipeId     String     @id @default(uuid()) @map("_id")
+  quantity     Float
+  unit         String
   ingredientId String
   recipe       Recipe     @relation(fields: [recipeId], references: [id])
   ingredient   Ingredient @relation(fields: [ingredientId], references: [id])
-  @@id([recipeId, ingredientId])
 }
 
 // Modelo para los pasos de una receta
