@@ -2,6 +2,7 @@ import { BadRequestError } from "@/shared/errors/bad-request.error";
 import { BakeryModel } from "./bakery.model";
 import { NotFoundError } from "@/shared/errors/not-found.error";
 import { BakerySchema, UpdateBakerySchema } from "./bakery.schema";
+import { ConflictError } from "@/shared/errors/conflict.error";
 
 export class BakeryService {
     static async getBakeries() {
@@ -27,7 +28,15 @@ export class BakeryService {
             throw new BadRequestError('There are missing required fields. Please check the request.')
         }
 
-        return await BakeryModel.createBakery({name, address, userId})
+        try {
+            return await BakeryModel.createBakery({name, address, userId})
+        } catch (error: any) {
+            // Handle unique constraint violation on ownerId
+            if (error.code === 'P2002' && error.meta?.target?.includes('ownerId')) {
+                throw new ConflictError('This user already has a bakery associated.')
+            }
+            throw error
+        }
     }
 
     static async updateBakery({id, name, address, userId}: UpdateBakerySchema){
