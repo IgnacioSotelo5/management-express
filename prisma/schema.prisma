@@ -75,7 +75,7 @@ model Bakery {
   equipments  Equipment[]
   categories  Category[]
   suppliers   Supplier[]
-  
+  invitations Invitation[]
 }
 
 
@@ -273,4 +273,19 @@ model Step {
   recipe    Recipe   @relation(fields: [recipeId], references: [id])
   order     Int
   text      String
+}
+
+model Invitation{
+  id          String    @id @default(uuid()) @map("_id")
+  email       String
+  name        String
+  token       String    @unique
+  role        String
+  used        Boolean   @default(false)
+  bakeryId    String    
+  bakery      Bakery @relation(fields: [bakeryId], references: [id])
+  createdAt   DateTime  @default(now())
+  expiresAt   DateTime
+
+  @@unique([email, bakeryId], name: "unique_invitation_per_bakery")
 }
