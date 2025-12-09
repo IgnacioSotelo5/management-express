@@ -33,5 +33,33 @@ export class AuthController{
             user: req.user
         })
     }
+
+    static async inviteEmployee(req: Request, res: Response, next: NextFunction): Promise<void> {
+        const { email, name, bakeryId, role, expiresAt } = req.body
+        const invitation = await AuthService.inviteEmployee({ email, name, bakeryId, role, expiresAt})
+
+        res.status(201).json({
+            success: true,
+            message: "Invitation created successfully",
+            invitation
+        })
+    }
     
+    static async acceptInvitation(req: Request, res: Response, next: NextFunction): Promise<void> {
+        const { token } = req.query
+
+        const result = AuthService.acceptInvitation(token)
+    }
+
+    static async validateInvitation(req: Request, res: Response, next: NextFunction): Promise<void> {
+        const { token } = req.query as { token: string }
+        const result = AuthService.validateInvitation(token)
+
+        res.status(200).json({
+            success: true,
+            message: "Invitation is valid",
+            isValid: result
+        })
+    }
+
 }
