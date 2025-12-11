@@ -21,6 +21,12 @@ enum CategoryType{
   EQUIPMENT
 }
 
+enum UserRole{
+  ADMIN
+  OWNER
+  EMPLOYEE
+}
+
 //FUTURE: enums OrderChannel to diff btw internal orders (bakery orders) and external orders (customers orders)
 // and DeliveryType to diff btw delivery by bakery or from our delivery service
 //FUTURE: enum OrderType to diff btw normal orders and subscriptions
@@ -35,7 +41,7 @@ model User {
   lastName    String
   email       String    @unique
   password    String
-  role        String
+  role        UserRole @default(OWNER)
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
   orders      Order[]
@@ -280,7 +286,7 @@ model Invitation{
   email       String
   name        String
   token       String    @unique
-  role        String
+  role        UserRole
   used        Boolean   @default(false)
   bakeryId    String    
   bakery      Bakery @relation(fields: [bakeryId], references: [id])

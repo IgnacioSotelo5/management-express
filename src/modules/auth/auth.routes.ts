@@ -4,7 +4,7 @@ import { userLoginSchema, userRegisterSchema } from "@/modules/auth/auth.schema"
 import { Router } from "express";
 import { authMiddleware } from "@/shared/middlewares/authMiddleware";
 import { asyncHandler } from "@/shared/utils/async-handler";
-import { invitationSchema } from "./invitation.schema";
+import { acceptInvitationSchema, invitationSchema } from "./invitation.schema";
 
 export const authRouter = Router();
 
@@ -18,4 +18,4 @@ authRouter.post('/invite', validateSchema(invitationSchema), asyncHandler(AuthCo
 
 authRouter.get('/invitations/validate', asyncHandler(AuthController.validateInvitation))
 
-authRouter.post('/invitations/accept', asyncHandler(AuthController.acceptInvitation))
+authRouter.post('/invitations/accept', validateSchema(acceptInvitationSchema), asyncHandler(AuthController.acceptInvitation))

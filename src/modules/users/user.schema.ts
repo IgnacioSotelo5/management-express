@@ -12,8 +12,9 @@ export const userRegisterSchema = z.object({
   name: z.string().trim().min(1, 'Name cannot be empty'),
   lastName: z.string().trim().min(1, 'Last name cannot be empty'),
   email: z.string().trim().toLowerCase().email(),
-  role: z.enum(['admin', 'user']),
-  password: strongPasswordSchema
+  role: z.enum(['ADMIN', 'EMPLOYEE', 'OWNER']),
+  password: strongPasswordSchema,
+  employeeAtId: z.string().uuid('Invalid bakery ID format. Must be a valid UUID.').nullable()
 })
 
 export const userSchema = z.object({
@@ -21,7 +22,9 @@ export const userSchema = z.object({
     name: z.string().min(1, 'Name cannot be empty'),
     lastName: z.string().min(1, 'Last name cannot be empty'),
     email: z.string().email('Must be a valid email'),
-    password: strongPasswordSchema
+    role: z.enum(['ADMIN', 'EMPLOYEE', 'OWNER']),
+    password: strongPasswordSchema,
+    employeeAtId: z.string().uuid('Invalid bakery ID format. Must be a valid UUID.').nullable()
 })
 
 export type User = z.infer<typeof userSchema>

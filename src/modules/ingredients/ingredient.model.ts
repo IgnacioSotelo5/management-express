@@ -90,7 +90,7 @@ export class IngredientModel{
 
             const receivedFields = Object.keys(data);
 
-            if (user?.role === "employee") {
+            if (user?.role === "EMPLOYEE") {
                 const invalidFields = receivedFields.filter(
                     (field) => !employeeAllowedFields.includes(field)
                 );
@@ -101,13 +101,13 @@ export class IngredientModel{
             }
 
             let updatedData: IngredientUpdateInput = {}
-            if(user?.role === 'owner'){
+            if(user?.role === 'OWNER'){
                 updatedData = {
                     name: data.name,
                     category: categoryUpdate,
                     supplier: supplierUpdate
                 }
-            } else if(user?.role === 'employee'){
+            } else if(user?.role === 'EMPLOYEE'){
                 updatedData = {
                     name: data.name,
                     stockQuantity: data.stockQuantity,

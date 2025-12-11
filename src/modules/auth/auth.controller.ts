@@ -3,8 +3,8 @@ import { AuthService } from "./auth.service";
 
 export class AuthController{
     static async signup (req: Request, res: Response, next: NextFunction): Promise <void>{
-        const { name, lastName, email, password } = req.body;
-        const newUser = await AuthService.signup({name, lastName, email, password})
+        const { name, lastName, email, password, role } = req.body;
+        const newUser = await AuthService.signup({name, lastName, email, password, role: "OWNER", employeeAtId: null})
             
         res.status(201).json({success: true, data: {
             message: 'User created successfully',
@@ -46,14 +46,22 @@ export class AuthController{
     }
     
     static async acceptInvitation(req: Request, res: Response, next: NextFunction): Promise<void> {
-        const { token } = req.query
+        const { token, id } = req.query as { token: string, id: string }
+        const { lastName, password } = req.body
 
-        const result = AuthService.acceptInvitation(token)
+        const result = await AuthService.acceptInvitation({ id, token, lastName, password })
+
+        res.status(201).json({
+            success: true,
+            message: "Invitation accepted successfully",
+            user: result.user,
+            token: result.token
+        })
     }
 
     static async validateInvitation(req: Request, res: Response, next: NextFunction): Promise<void> {
-        const { token } = req.query as { token: string }
-        const result = AuthService.validateInvitation(token)
+        const { token, id } = req.query as { token: string, id: string }
+        const result = await AuthService.validateInvitation(id, token)
 
         res.status(200).json({
             success: true,

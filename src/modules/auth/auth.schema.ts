@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-const strongPasswordSchema = z.string()
+export const strongPasswordSchema = z.string()
   .min(8, "Must be at least 8 characters")
   .max(32, "Cannot exceed 32 characters")
   .regex(/[A-Z]/, "Must contain at least one uppercase letter")
@@ -13,8 +13,9 @@ export const userRegisterSchema = z.object({
   name: z.string().trim().min(1, 'Name cannot be empty'),
   lastName: z.string().trim().min(1, 'Last name cannot be empty'),
   email: z.string().trim().toLowerCase().email(),
-  role: z.string().refine((val) => (['admin', 'user'].includes(val))).optional(),
-  password: strongPasswordSchema
+  role: z.enum(['ADMIN', 'EMPLOYEE', 'OWNER']),
+  password: strongPasswordSchema,
+  employeeAtId: z.string().uuid('Invalid bakery ID format. Must be a valid UUID.').nullable()
 });
 
 export const userLoginSchema = z.object({

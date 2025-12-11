@@ -10,10 +10,11 @@ import { BadRequestError } from "@/shared/errors/bad-request.error";
 import { NotFoundError } from "@/shared/errors/not-found.error";
 import { GoneError } from "@/shared/errors/gone-error";
 import { ConflictError } from "@/shared/errors/conflict.error";
+import { UserRole } from "@/db/generated/enums";
 
 export class AuthService{
-    static async signup({name, lastName, email, password}: userRegisterDTO){
-        const newUser: Omit<userRegisterDTO, "password"> = await UserService.createUser({name, lastName, email, password})
+    static async signup({name, lastName, email, password, role, employeeAtId}: userRegisterDTO){
+        const newUser: Omit<userRegisterDTO, "password"> = await UserService.createUser({ name, lastName, email, password, role, employeeAtId })
         const payload = {
             userId: newUser.id,
             email: newUser.email,
@@ -46,7 +47,7 @@ export class AuthService{
         
     }
 
-    static async inviteEmployee({ email, name, bakeryId, role, expiresAt }: { email: string; name: string; bakeryId: string; role: string; expiresAt: Date }) {
+    static async inviteEmployee({ email, name, bakeryId, role, expiresAt }: { email: string; name: string; bakeryId: string; role: UserRole; expiresAt: Date }) {
         if(!name || !email || !bakeryId || !role || !expiresAt){
             throw new BadRequestError('Missing required fields for invitation.')
         }
@@ -74,14 +75,18 @@ export class AuthService{
         }
     }
 
-    static async validateInvitation(token?: string) {
-        if(!token){
-            throw new BadRequestError('Invitation token is required.')
+    static async validateInvitation(id?: string, token?: string){
+        if(!id){
+            throw new BadRequestError('Invitation ID is required.')
         }
-        const invitation = await UserModel.findInvitationByToken(token)
+        const invitation = await UserModel.findInvitationById(id)
 
         if(!invitation) {
             throw new NotFoundError('Invitation not found.')
+        }
+
+        if(token && !(await bcrypt.compare(token, invitation.token))) {
+            throw new UnauthorizedError('Invalid invitation token.')
         }
 
         if(invitation.used){
@@ -92,8 +97,24 @@ export class AuthService{
             throw new GoneError('Invitation has expired.')
         }
 
-        return invitation !== null;
+        return invitation;
     }
 
-    static async acceptInvitation(token?: string) {}
+    static async acceptInvitation({ id, token, lastName, password }: { id: string, token?: string, lastName: string, password: string }) {
+        const invitation = await this.validateInvitation(id, token)
+
+        if(!invitation) {
+            throw new NotFoundError('Invitation not found.')
+        }
+
+        if(invitation.role !== 'EMPLOYEE' && invitation.role !== 'OWNER'){
+            throw new BadRequestError('Invalid role in invitation.')
+        }
+
+        const newUser = await this.signup({name: invitation.name, lastName, email: invitation.email, password, role: invitation.role, employeeAtId: invitation.bakeryId ?? null})
+
+        await UserModel.revokeInvitation(id)
+
+        return newUser
+    }
 }
