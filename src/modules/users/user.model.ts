@@ -78,4 +78,16 @@ export class UserModel{
         return invitation
     }
 
+    static async getUserRole(userId: string): Promise<string | null> {
+        const user = await prisma.user.findUnique({
+            where: {
+                id: userId
+            },
+            select: {
+                role: true
+            }
+        })
+        return user?.role || null;
+    }
+
 }

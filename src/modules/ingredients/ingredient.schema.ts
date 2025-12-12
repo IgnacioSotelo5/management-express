@@ -17,6 +17,7 @@ export const ingredientSchema = z.object({
     expirationDate: z.string().transform((str) => new Date(str)).optional(),
     stockQuantity: z.number().optional(),
     reorderLevel: z.number().optional(),
+    quantityUsed: z.number().optional(),
 })
 
 export const updateIngredientSchema = z.object({
@@ -29,6 +30,7 @@ export const updateIngredientSchema = z.object({
         expirationDate: z.string().transform((str) => new Date(str)),
         stockQuantity: z.number().optional(),
         reorderLevel: z.number().optional(),
+        quantityUsed: z.number().optional(),
     }).partial()
 
 export type Ingredient = z.infer<typeof ingredientSchema>

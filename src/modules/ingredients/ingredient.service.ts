@@ -4,6 +4,10 @@ import { Ingredient, updateIngredient } from "./ingredient.schema";
 import { NotFoundError } from "@/shared/errors/not-found.error";
 import { CategoryModel } from "../category/category.model";
 import { SupplierModel } from "../suppliers/supplier.model";
+import { getUserBakeryId } from "@/shared/utils/getUserBakeryId";
+import { ForbiddenError } from "@/shared/errors/forbidden.error";
+import { UserModel } from "../users/user.model";
+import { IngredientUpdateInput } from "@/db/generated/models";
 
 export class IngredientService{
 
@@ -15,6 +19,13 @@ export class IngredientService{
         if(!id){
             throw new BadRequestError("No ID provided")
         }
+
+        const ingredient = await IngredientModel.getIngredientByID({id, userId})
+
+        if(!ingredient){ 
+            throw new NotFoundError(`Ingredient with ID ${id} not found.`)
+        }
+
         return await IngredientModel.getIngredientByID({id, userId})
     }
 
@@ -35,17 +46,69 @@ export class IngredientService{
             }
         }
 
-        return await IngredientModel.createIngredient({ingredient, userId})
+        const bakeryId = await getUserBakeryId(userId)
+
+        if(!bakeryId){
+            throw new ForbiddenError('User does not belong to any bakery.')
+        }
+
+        return await IngredientModel.createIngredient({ingredient, bakeryId})
     }
 
     static async updateIngredient({id, ingredient, userId}: {id: string, ingredient: updateIngredient, userId: string}){
         const data = ingredient
 
-        //Verificamos si existe el ingrediente, si no el existe el modelo se encarga de lanzar un error personalizado,
-        //usamos el id y el userId para evitar que un usuario pueda modificar ingredientes de otros usuarios
-        await IngredientModel.getIngredientByID({id, userId})
-        
-        const categoryUpdate = data.category ? {
+        const existingIngredient = await IngredientModel.getIngredientByID({id, userId})
+        if(!existingIngredient){
+            throw new NotFoundError('Ingredient not found in DB.')
+        }
+
+        const userRole = await UserModel.getUserRole(userId)
+
+        const employeeAllowedFields = [
+            "name",
+            "stockQuantity",
+            "categoryId",
+            "supplierId",
+            "quantityUsed",
+            "expirationDate"
+        ];
+
+        const receivedFields = Object.keys(data);
+
+        if (userRole === "EMPLOYEE") {
+            const invalidFields = receivedFields.filter(
+                (field) => !employeeAllowedFields.includes(field)
+            );
+
+            if (invalidFields.length > 0) {
+                throw new ForbiddenError(`Employees are not allowed to update the following fields: ${invalidFields.join(", ")}`);
+            }
+        }
+
+        let updatedData: IngredientUpdateInput = {}
+        if (userRole === "OWNER") {
+            updatedData = {
+                name: data.name,
+                pricePerUnit: data.pricePerUnit,
+                unit: data.unit,
+                totalUnit: data.totalUnit,
+                expirationDate: data.expirationDate ? new Date(data.expirationDate) : undefined,
+                stockQuantity: data.stockQuantity,
+                reorderLevel: data.reorderLevel,
+                quantityUsed: data.quantityUsed,
+            };
+        } else if (userRole === "EMPLOYEE") {
+            // Si el usuario es EMPLOYEE, solo permitimos ciertos campos
+            updatedData = {
+                name: data.name,           // El nombre puede ser actualizado
+                stockQuantity: data.stockQuantity,   // Cantidad de stock
+                quantityUsed: data.quantityUsed,    // Cantidad usada
+                expirationDate: data.expirationDate ? new Date(data.expirationDate) : undefined,  // Fecha de expiración
+            };
+        }
+
+        let categoryUpdate = data.category ? {
             connectOrCreate: {
                 where: {name: data.category.name},
                 create: {
@@ -56,7 +119,7 @@ export class IngredientService{
             }
         } : undefined
 
-        const supplierUpdate = data.supplier !== undefined 
+        let supplierUpdate = data.supplier !== undefined 
         ? data.supplier !== null 
             ? {
                 connectOrCreate: {
@@ -69,8 +132,8 @@ export class IngredientService{
             }
             : { disconnect: true }
         : undefined
-        
-        return await IngredientModel.updateIngredient({id, data, categoryUpdate, supplierUpdate, userId})
+
+        return await IngredientModel.updateIngredient({id, updatedData, categoryUpdate, supplierUpdate})
     }
 
     static async deleteIngredient({id, userId}: {id: string, userId: string}){
